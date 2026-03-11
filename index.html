@@ -7,6 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Trip Planner — Poland & Czech Republic</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
 :root{--bg:#f5f5f7;--s:#fff;--t:#1d1d1f;--t2:#6e6e73;--t3:#86868b;--bd:rgba(0,0,0,.06);--a:#0071e3;--r:16px;--rs:10px;--sh:0 1px 3px rgba(0,0,0,.04),0 4px 12px rgba(0,0,0,.03);--sh2:0 2px 8px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.06);--font:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -142,6 +144,55 @@ section{margin-bottom:2rem}
 
 /* Touch targets */
 @media(max-width:600px){.toggle-btn,.lang-btn{min-height:36px}.si-link{padding:.3rem .1rem}}
+
+/* ═══ MAP SECTION ═══ */
+.map-controls{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.6rem}
+.map-mode-tabs{display:flex;gap:0;background:rgba(0,0,0,.04);border-radius:8px;padding:2px;margin-bottom:.15rem}
+.mode-tab{flex:1;border:none;background:transparent;font-family:inherit;font-size:.68rem;font-weight:600;padding:.4rem .5rem;border-radius:6px;cursor:pointer;color:var(--t3);transition:all .15s;text-align:center;min-height:32px}
+.mode-tab.active{background:var(--s);color:var(--t);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+@media(min-width:600px){.mode-tab{font-size:.72rem}}
+.map-row{display:flex;gap:0;background:rgba(0,0,0,.04);border-radius:8px;padding:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.map-row::-webkit-scrollbar{display:none}
+.mbtn{flex-shrink:0;border:none;background:transparent;font-family:inherit;font-size:.68rem;font-weight:600;padding:.38rem .6rem;border-radius:6px;cursor:pointer;color:var(--t3);transition:all .15s;white-space:nowrap;min-height:32px;text-align:center}
+.mbtn.active{background:var(--s);color:var(--t);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.mbtn-day{flex:1;min-width:0;padding:.3rem .15rem;font-size:.58rem;line-height:1.25;display:flex;flex-direction:column;align-items:center;gap:1px}
+.mbtn-day .day-num{font-weight:700;font-size:.6rem}
+.mbtn-day .day-sub{font-weight:500;font-size:.48rem;opacity:.65;letter-spacing:-.01em}
+.mbtn-day.active .day-sub{opacity:.85}
+@media(min-width:600px){.mbtn{font-size:.72rem;padding:.4rem .7rem}.mbtn-day{font-size:.62rem}.mbtn-day .day-num{font-size:.64rem}.mbtn-day .day-sub{font-size:.5rem}}
+
+.map-status-bar{display:flex;align-items:center;gap:.5rem;padding:.05rem 0}
+.sw-wrap{display:flex;align-items:center;gap:.35rem;cursor:pointer;flex-shrink:0;user-select:none;-webkit-user-select:none}
+.sw-lbl{font-size:.68rem;font-weight:600;color:var(--t3)}
+.sw{width:36px;height:20px;background:rgba(0,0,0,.12);border-radius:10px;position:relative;transition:background .2s;flex-shrink:0}
+.sw.on{background:var(--a)}
+.sw-k{position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;box-shadow:0 1px 2px rgba(0,0,0,.15);transition:transform .2s}
+.sw.on .sw-k{transform:translateX(16px)}
+.date-slider{display:none;align-items:center;gap:2px;flex:1;min-width:0}
+.date-slider.show{display:flex}
+.ds-a{border:none;background:none;font-size:1rem;color:var(--t3);cursor:pointer;padding:.15rem .2rem;line-height:1;font-weight:700;min-height:30px;display:flex;align-items:center;justify-content:center}
+.ds-a:hover{color:var(--t)}
+.ds-scroll{display:flex;gap:1px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex:1;min-width:0}
+.ds-scroll::-webkit-scrollbar{display:none}
+.ds-d{flex-shrink:0;border:none;background:transparent;font-family:inherit;font-size:.68rem;font-weight:700;padding:.2rem .35rem;border-radius:5px;cursor:pointer;color:var(--t3);transition:all .12s;min-height:28px;min-width:28px;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+.ds-d.active{background:var(--a);color:#fff}
+
+#mapContainer{width:100%;height:380px;border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);z-index:1}
+@media(min-width:600px){#mapContainer{height:440px}}
+#mapContainer .leaflet-popup-content-wrapper{font-family:var(--font);border-radius:var(--rs);box-shadow:var(--sh2);padding:0}
+#mapContainer .leaflet-popup-content{margin:.65rem .8rem;font-size:.75rem;line-height:1.5;color:var(--t2);min-width:180px}
+#mapContainer .leaflet-popup-content b{color:var(--t);font-weight:700}
+#mapContainer .leaflet-popup-content .pop-city{font-size:.58rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-top:.05rem}
+#mapContainer .leaflet-popup-content .pop-pills{margin-top:.3rem}
+#mapContainer .leaflet-popup-tip{box-shadow:none}
+#mapContainer .leaflet-popup-close-button{font-size:16px;color:var(--t3);top:6px;right:8px}
+
+.map-legend2{display:none;flex-wrap:wrap;gap:.25rem .5rem;margin-top:.45rem}
+.map-legend2.show{display:flex}
+
+/* Leaflet tooltip labels */
+#mapContainer .site-label{background:none!important;border:none!important;box-shadow:none!important;font-family:var(--font);font-size:11px;font-weight:600;color:var(--t);padding:0!important;white-space:nowrap;pointer-events:none;text-shadow:0 0 4px #fff,0 0 4px #fff,0 0 4px #fff,0 0 4px #fff,1px 1px 2px rgba(255,255,255,.95)}
+#mapContainer .site-label::before{display:none!important}
 </style>
 </head>
 <body>
@@ -319,6 +370,71 @@ section{margin-bottom:2rem}
 </div></div>
 
 </section>
+
+<!-- ═══ INTERACTIVE MAP ═══ -->
+<section id="map-section">
+<div class="sl"><span data-i="map_label">Explore</span></div>
+<div class="st"><span data-i="map_title">Interactive map</span></div>
+<div class="sd"><span data-i="map_desc">Filter by city to zoom in, or by itinerary day. Toggle status to see closures at a glance.</span></div>
+
+<div class="map-controls" id="mapControls">
+<!-- Mode tabs -->
+<div class="map-mode-tabs">
+<button class="mode-tab active" id="modeCity" data-i="mode_city">By city</button>
+<button class="mode-tab" id="modeDay" data-i="mode_day">By itinerary day</button>
+</div>
+
+<!-- Mode A: City filter -->
+<div id="panelCity">
+<div class="map-row" id="cityRow">
+<button class="mbtn active" data-city="all"><span data-i="all_cities">All</span></button>
+<button class="mbtn" data-city="prague"><span data-i="prague">Prague</span></button>
+<button class="mbtn" data-city="krakow"><span data-i="krakow">Kraków</span></button>
+<button class="mbtn" data-city="warsaw"><span data-i="warsaw">Warsaw</span></button>
+</div>
+</div>
+
+<!-- Mode B: Itinerary day filter (built by JS) -->
+<div id="panelDay" style="display:none">
+<div class="map-row" id="dayRow"></div>
+</div>
+
+<!-- Status toggle + date slicer (city mode only) -->
+<div class="map-status-bar" id="statusBar">
+<div class="sw-wrap" id="statusWrap">
+<span class="sw-lbl" data-i="show_status">Show status</span>
+<div class="sw" id="statusSw"><div class="sw-k"></div></div>
+</div>
+<div class="date-slider" id="dateSlider">
+<button class="ds-a" id="dsPrev">‹</button>
+<div class="ds-scroll" id="dsScroll">
+<button class="ds-d active" data-d="22">22</button>
+<button class="ds-d" data-d="23">23</button>
+<button class="ds-d" data-d="24">24</button>
+<button class="ds-d" data-d="25">25</button>
+<button class="ds-d" data-d="26">26</button>
+<button class="ds-d" data-d="27">27</button>
+<button class="ds-d" data-d="28">28</button>
+<button class="ds-d" data-d="29">29</button>
+<button class="ds-d" data-d="30">30</button>
+<button class="ds-d" data-d="31">31</button>
+</div>
+<button class="ds-a" id="dsNext">›</button>
+</div>
+</div>
+</div>
+
+<div id="mapContainer"></div>
+
+<div class="map-legend2" id="mapLegend">
+<span class="p_ p-clear"><span data-i="l_clear">Clear</span></span>
+<span class="p_ p-closed"><span data-i="l_closed">Closed</span></span>
+<span class="p_ p-limited"><span data-i="l_limited">Limited hrs</span></span>
+<span class="p_ p-free"><span data-i="l_free">Free entry</span></span>
+<span class="p_ p-info"><span data-i="l_info">Note</span></span>
+</div>
+</section>
+
 </div>
 
 <script>
@@ -355,14 +471,309 @@ function setLang(lang){
  document.getElementById('btn-zh').classList.toggle('active',lang==='zh');
  document.body.classList.toggle('zh',lang==='zh');
  document.documentElement.lang=lang==='zh'?'zh-Hant':'en';
+ if(window._refreshTooltips)window._refreshTooltips();
+ if(window._rebuildDays)window._rebuildDays();
 }
 
 function showIt(id){
- document.querySelectorAll('.it-panel').forEach(p=>p.classList.remove('active'));
- document.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));
+ document.querySelectorAll('.it-panel').forEach(function(p){p.classList.remove('active')});
+ document.querySelectorAll('.toggle-btn').forEach(function(b){b.classList.remove('active')});
  document.getElementById('it-'+id).classList.add('active');
  document.getElementById('btn-'+id).classList.add('active');
+ if(window._ms){window._ms.itin=id==='prg'?'prg':'waw';if(window._rebuildDays)window._rebuildDays();}
 }
+
+/* ═══ MAP ═══ */
+(function(){
+'use strict';
+
+var SITES=[
+ {id:'prague_castle',n:'Prague Castle',nz:'布拉格城堡',c:'prague',lat:50.0911,lng:14.4003,h:'Grounds 6–22 · Buildings 9–17',hz:'園區 6–22 · 建築 9–17',d:'The world\'s largest ancient castle complex.',dz:'世界最大的古城堡建築群。'},
+ {id:'charles_bridge',n:'Charles Bridge',nz:'查理大橋',c:'prague',lat:50.0865,lng:14.4114,h:'24/7 · no ticket',hz:'全天候 · 免門票',d:'14th-century stone bridge spanning the Vltava.',dz:'橫跨伏爾塔瓦河的14世紀石橋。'},
+ {id:'oldtownhall',n:'Old Town Hall & Clock',nz:'舊城市政廳與天文鐘',c:'prague',lat:50.0870,lng:14.4209,h:'Mon–Sun 9–20',hz:'週一至週日 9–20',d:'Medieval tower with the Astronomical Clock.',dz:'中世紀塔樓，擁有天文鐘。'},
+ {id:'stvitus',n:'St. Vitus Cathedral',nz:'聖維特大教堂',c:'prague',lat:50.0909,lng:14.4010,h:'Mon–Sat 9–17 · Sun 12–17',hz:'週一至六 9–17 · 週日 12–17',d:'Gothic masterpiece inside Prague Castle.',dz:'布拉格城堡內的哥德式傑作。'},
+ {id:'jewish_mus',n:'Jewish Museum',nz:'猶太博物館',c:'prague',lat:50.0897,lng:14.4180,h:'Sun–Fri 9–19 (summer)',hz:'週日至五 9–19（夏季）',d:'Six synagogues and the Old Jewish Cemetery.',dz:'六座會堂與舊猶太墓園。'},
+ {id:'lobkowicz',n:'Lobkowicz Palace',nz:'洛布科維茨宮',c:'prague',lat:50.0896,lng:14.4038,h:'Mon 10–17 · Tue–Sun 9–17',hz:'週一 10–17 · 二至日 9–17',d:'Beethoven & Mozart manuscripts.',dz:'貝多芬與莫扎特手稿。'},
+ {id:'natgal',n:'National Gallery',nz:'國家美術館',c:'prague',lat:50.0906,lng:14.3958,h:'Tue–Sun 10–18',hz:'週二至日 10–18',d:'Czech Republic\'s largest art collection.',dz:'捷克最大的藝術收藏。'},
+ {id:'natmus_p',n:'National Museum',nz:'國家博物館（布拉格）',c:'prague',lat:50.0796,lng:14.4308,h:'Wed–Mon 10–18',hz:'週三至一 10–18',d:'Neo-Renaissance building on Wenceslas Square.',dz:'瓦茨拉夫廣場的新文藝復興建築。'},
+ {id:'wawel_castle',n:'Wawel Royal Castle',nz:'瓦維爾皇家城堡',c:'krakow',lat:50.0541,lng:19.9354,h:'Mon 10–16 (free) · Tue–Sun 9–17',hz:'週一 10–16（免費）· 二至日 9–17',d:'Renaissance royal residence on Wawel Hill.',dz:'瓦維爾山上的文藝復興皇家宮殿。'},
+ {id:'stmary',n:'St. Mary\'s Basilica',nz:'聖母聖殿',c:'krakow',lat:50.0617,lng:19.9393,h:'Mon–Sat 11:30–18 · Sun 14–18',hz:'週一至六 11:30–18 · 週日 14–18',d:'Gothic basilica with Poland\'s finest altarpiece.',dz:'擁有波蘭最精美祭壇畫的哥德式聖殿。'},
+ {id:'auschwitz',n:'Auschwitz-Birkenau',nz:'奧斯威辛-比克瑙紀念館',c:'krakow',lat:50.0274,lng:19.2027,h:'May: daily 7:30–18',hz:'5月：每日 7:30–18',d:'Memorial and museum. Advance booking required.',dz:'紀念館，須提前預約。'},
+ {id:'wieliczka',n:'Wieliczka Salt Mine',nz:'維利奇卡鹽礦',c:'krakow',lat:49.9835,lng:20.0567,h:'Daily ~8–17 · guided only',hz:'每日約 8–17 · 僅限導覽',d:'UNESCO salt mine with underground chapels.',dz:'UNESCO鹽礦，地下有禮拜堂。'},
+ {id:'schindler',n:'Schindler\'s Factory',nz:'辛德勒工廠',c:'krakow',lat:50.0475,lng:19.9616,h:'Mon 10–15 · Tue–Fri 9–19 · Sat–Sun 9–20',hz:'週一 10–15 · 二至五 9–19 · 六日 9–20',d:'WWII museum in the actual factory.',dz:'位於工廠原址的二戰博物館。'},
+ {id:'wawel_cath',n:'Wawel Cathedral',nz:'瓦維爾大教堂',c:'krakow',lat:50.0546,lng:19.9348,h:'Mon–Sat 9–17 · Sun 12:30–17',hz:'週一至六 9–17 · 週日 12:30–17',d:'Coronation site of Polish kings.',dz:'歷代波蘭國王加冕地。'},
+ {id:'rynek_underground',n:'Rynek Underground',nz:'地下博物館',c:'krakow',lat:50.0616,lng:19.9374,h:'Mon,Wed–Thu 10–19 · Fri–Sat 10–20',hz:'一、三四 10–19 · 五六 10–20',d:'Museum 4m below Main Square.',dz:'中央集市廣場地下4公尺的博物館。'},
+ {id:'royal_castle',n:'Royal Castle',nz:'皇家城堡',c:'warsaw',lat:52.2479,lng:21.0143,h:'Tue–Sat 10–17 · Sun 11–17',hz:'週二至六 10–17 · 週日 11–17',d:'Rebuilt royal residence in Old Town.',dz:'舊城區重建的皇家宮殿。'},
+ {id:'rising_mus',n:'Warsaw Rising Museum',nz:'華沙起義博物館',c:'warsaw',lat:52.2325,lng:20.9813,h:'Mon, Wed–Sun 10–18',hz:'週一、三至日 10–18',d:'1944 Warsaw Uprising museum.',dz:'1944年華沙起義博物館。'},
+ {id:'polin',n:'POLIN Museum',nz:'POLIN博物館',c:'warsaw',lat:52.2495,lng:20.9934,h:'Mon,Wed–Fri,Sun 10–18 · Sat 10–20',hz:'一三四五日 10–18 · 六 10–20',d:'1,000 years of Jewish life in Poland.',dz:'波蘭千年猶太生活史博物館。'},
+ {id:'lazienki',n:'\u0141azienki Royal Park',nz:'瓦津基皇家公園',c:'warsaw',lat:52.2148,lng:21.0355,h:'Park daily · Museum closed Mon',hz:'公園每日 · 博物館週一休',d:'18th-century park with Chopin concerts.',dz:'18世紀公園，免費蕭邦音樂會。'},
+ {id:'wilanow',n:'Wilan\u00f3w Palace',nz:'維拉諾夫宮',c:'warsaw',lat:52.1652,lng:21.0900,h:'Wed–Mon 10–16',hz:'週三至一 10–16',d:'"Polish Versailles" in formal gardens.',dz:'波蘭凡爾賽，法式花園。'},
+ {id:'natmus_w',n:'National Museum',nz:'國家博物館（華沙）',c:'warsaw',lat:52.2317,lng:21.0243,h:'Tue–Sun 10–18',hz:'週二至日 10–18',d:'Poland\'s largest museum.',dz:'波蘭最大的博物館。'}
+];
+
+var STATUS={
+ 22:{},23:{jewish_mus:{s:'closed',l:'Closed (Sat)',lz:'\u9031\u516d\u4f11\u9928'}},
+ 24:{_h:'Pentecost',_hz:'\u4e94\u65ec\u7bc0',stvitus:{s:'limited',l:'From 12:00',lz:'12\u6642\u8d77'},wawel_cath:{s:'limited',l:'From 12:30',lz:'12:30\u8d77'},stmary:{s:'limited',l:'From 14:00',lz:'14\u6642\u8d77'},wawel_castle:{s:'info',l:'Cath. Museum closed',lz:'\u5927\u6559\u5802\u535a\u7269\u9928\u4f11\u9928'}},
+ 25:{natgal:{s:'closed',l:'Closed Mon',lz:'\u9031\u4e00\u4f11\u9928'},wawel_castle:{s:'limited',l:'10\u201316',lz:'10\u201316'},schindler:{s:'limited',l:'10\u201315',lz:'10\u201315'},natmus_w:{s:'closed',l:'Closed Mon',lz:'\u9031\u4e00\u4f11\u9928'},lazienki:{s:'closed',l:'Museum closed',lz:'\u535a\u7269\u9928\u9031\u4e00\u4f11\u9928'}},
+ 26:{natmus_p:{s:'closed',l:'Closed Tue',lz:'\u9031\u4e8c\u4f11\u9928'},polin:{s:'closed',l:'Closed Tue',lz:'\u9031\u4e8c\u4f11\u9928'},rising_mus:{s:'closed',l:'Closed Tue',lz:'\u9031\u4e8c\u4f11\u9928'},wilanow:{s:'closed',l:'Closed Tue',lz:'\u9031\u4e8c\u4f11\u9928'}},
+ 27:{royal_castle:{s:'free',l:'Free Wed',lz:'\u9031\u4e09\u514d\u8cbb'}},
+ 28:{polin:{s:'free',l:'Free Thu',lz:'\u9031\u56db\u514d\u8cbb'},rising_mus:{s:'free',l:'Free Thu',lz:'\u9031\u56db\u514d\u8cbb'}},
+ 29:{rynek_underground:{s:'limited',l:'Closes 14:00',lz:'14\u6642\u95dc\u9589'}},
+ 30:{jewish_mus:{s:'closed',l:'Closed (Sat)',lz:'\u9031\u516d\u4f11\u9928'}},
+ 31:{stvitus:{s:'limited',l:'From 12:00',lz:'12\u6642\u8d77'},wawel_cath:{s:'limited',l:'From 12:30',lz:'12:30\u8d77'},stmary:{s:'limited',l:'From 14:00',lz:'14\u6642\u8d77'},wawel_castle:{s:'info',l:'Cath. Museum closed',lz:'\u5927\u6559\u5802\u535a\u7269\u9928\u4f11\u9928'}}
+};
+
+var ITIN={
+ prg:{1:['oldtownhall','charles_bridge'],2:['prague_castle','stvitus','lobkowicz','charles_bridge'],3:['jewish_mus','oldtownhall'],4:[],5:['auschwitz'],6:['wawel_castle','wawel_cath','schindler','stmary','rynek_underground'],7:['wieliczka','royal_castle'],8:['royal_castle','polin','lazienki'],9:['rising_mus']},
+ waw:{1:['royal_castle'],2:['lazienki','polin'],3:['rising_mus'],4:['auschwitz'],5:['wawel_castle','wawel_cath','schindler','stmary','rynek_underground'],6:['wieliczka'],7:['prague_castle','stvitus','lobkowicz','charles_bridge'],8:[],9:['jewish_mus','oldtownhall']}
+};
+
+var DAY_DATES=[23,24,25,26,27,28,29,30,31];
+function getDow(d){return['Fri','Sat','Sun','Mon','Tue','Wed','Thu','Fri','Sat','Sun'][d-22]||'';}
+function getDowZh(d){return['\u9031\u4e94','\u9031\u516d','\u9031\u65e5','\u9031\u4e00','\u9031\u4e8c','\u9031\u4e09','\u9031\u56db','\u9031\u4e94','\u9031\u516d','\u9031\u65e5'][d-22]||'';}
+
+var STATUS_COLORS={clear:'#34c759',closed:'#ff3b30',limited:'#ff9500',free:'#34c759',info:'#0071e3'};
+var DEFAULT_COLOR='#636366';
+
+// State — minimal
+var S={mode:'city',itin:'prg',status:false,date:22};
+window._ms=S;
+
+var map,markers={},markerGroup;
+
+// ── Day row builder ──
+function buildDayRow(){
+ var row=document.getElementById('dayRow');
+ row.innerHTML='';
+ var zh=document.body.classList.contains('zh');
+ for(var i=0;i<9;i++){
+  var dn=i+1,cd=DAY_DATES[i],dow=zh?getDowZh(cd):getDow(cd);
+  var btn=document.createElement('button');
+  btn.className='mbtn mbtn-day';
+  btn.dataset.day=dn;
+  btn.innerHTML='<span class="day-num">'+(zh?'\u7b2c'+dn+'\u5929':'DAY '+dn)+'</span><span class="day-sub">'+cd+' '+dow+'</span>';
+  row.appendChild(btn);
+ }
+}
+window._rebuildDays=buildDayRow;
+
+// ── Init Leaflet ──
+function initLeaflet(){
+ map=L.map('mapContainer',{zoomControl:false,attributionControl:false}).setView([50.5,17.5],6);
+
+ var tl=L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+  maxZoom:18,subdomains:'abcd',
+  attribution:'\u00a9 <a href="https://www.openstreetmap.org/copyright">OSM</a> \u00b7 <a href="https://carto.com/">CARTO</a>'
+ });
+ tl.on('tileerror',function(){tl.setUrl('https://tile.openstreetmap.org/{z}/{x}/{y}.png');});
+ tl.addTo(map);
+ L.control.zoom({position:'topright'}).addTo(map);
+
+ markerGroup=L.featureGroup();
+ SITES.forEach(function(site){
+  var m=L.circleMarker([site.lat,site.lng],{
+   radius:7,fillColor:DEFAULT_COLOR,color:'#fff',weight:2,fillOpacity:0.9,opacity:1
+  });
+  m._site=site;
+  var zh=document.body.classList.contains('zh');
+  m.bindTooltip(zh?(site.nz||site.n):site.n,{
+   permanent:true,direction:'bottom',offset:[0,6],className:'site-label',opacity:1
+  });
+  m.on('click',function(){openPopup(site,m);});
+  markers[site.id]=m;
+  markerGroup.addLayer(m);
+ });
+ markerGroup.addTo(map);
+ map.fitBounds(markerGroup.getBounds().pad(0.15));
+
+ // Labels: purely zoom-based
+ map.on('zoomend',updateLabels);
+ setTimeout(updateLabels,300);
+
+ // Apply initial status colors
+ applyColors();
+}
+
+// ── LABELS: solely depends on zoom level ──
+function updateLabels(){
+ if(!map)return;
+ var show=map.getZoom()>=9;
+ SITES.forEach(function(site){
+  var m=markers[site.id];if(!m)return;
+  var tip=m.getTooltip();if(!tip)return;
+  var el=tip.getElement();
+  if(el)el.style.display=show?'':'none';
+ });
+}
+
+// ── COLORS: solely depends on status toggle + date ──
+function applyColors(){
+ if(!map)return;
+ var dateData=S.status?(STATUS[S.date]||{}):{};
+
+ SITES.forEach(function(site){
+  var m=markers[site.id];if(!m)return;
+  if(S.status){
+   var ss=dateData[site.id];
+   var col=ss?STATUS_COLORS[ss.s]:STATUS_COLORS.clear;
+   m.setStyle({fillColor:col,radius:ss?9:7});
+  } else {
+   m.setStyle({fillColor:DEFAULT_COLOR,radius:7});
+  }
+ });
+}
+
+// ── POPUP ──
+function openPopup(site,marker){
+ var zh=document.body.classList.contains('zh');
+ var name=zh?(site.nz||site.n):site.n;
+ var cityMap={prague:zh?'\u5e03\u62c9\u683c':'Prague',krakow:zh?'\u514b\u62c9\u79d1\u592b':'Krak\u00f3w',warsaw:zh?'\u83ef\u6c99':'Warsaw'};
+ var html='<b>'+name+'</b><div class="pop-city">'+cityMap[site.c]+'</div>';
+
+ if(S.status){
+  var dd=STATUS[S.date]||{};
+  var ss=dd[site.id];
+  html+='<div class="pop-pills" style="margin-top:.25rem">';
+  if(ss){html+='<span class="p_ p-'+ss.s+'">'+(zh?ss.lz:ss.l)+'</span>';}
+  else{html+='<span class="p_ p-clear">'+(zh?'\u6b63\u5e38\u958b\u653e':'Open')+'</span>';}
+  if(dd._h){html+=' <span class="p_ p-holiday">'+(zh?dd._hz:dd._h)+'</span>';}
+  html+='</div>';
+ }
+ html+='<div style="margin-top:.3rem;font-size:.7rem;color:#6e6e73">\ud83d\udd50 '+(zh?(site.hz||site.h):site.h)+'</div>';
+ html+='<div style="margin-top:.15rem;font-size:.68rem;color:#86868b">'+(zh?(site.dz||site.d):site.d)+'</div>';
+ marker.unbindPopup();
+ marker.bindPopup(html,{maxWidth:260,closeButton:true}).openPopup();
+}
+
+// ── FLY-TO helpers (shortcuts, not filters) ──
+function flyToAll(){
+ if(map)map.fitBounds(markerGroup.getBounds().pad(0.15),{animate:true,duration:0.4});
+}
+function flyToCity(city){
+ var pts=[];
+ SITES.forEach(function(s){if(s.c===city)pts.push(markers[s.id]);});
+ if(pts.length){
+  var fg=L.featureGroup(pts);
+  map.fitBounds(fg.getBounds().pad(0.25),{maxZoom:15,animate:true,duration:0.4});
+ }
+}
+function flyToDay(dayNum){
+ var ids=ITIN[S.itin][dayNum]||[];
+ var pts=[];
+ ids.forEach(function(id){if(markers[id])pts.push(markers[id]);});
+ if(pts.length){
+  var fg=L.featureGroup(pts);
+  map.fitBounds(fg.getBounds().pad(0.3),{maxZoom:15,animate:true,duration:0.4});
+ } else {
+  flyToAll();
+ }
+}
+
+// ── Refresh tooltips on language change ──
+function refreshTooltips(){
+ var zh=document.body.classList.contains('zh');
+ SITES.forEach(function(site){
+  var m=markers[site.id];if(!m)return;
+  m.unbindTooltip();
+  m.bindTooltip(zh?(site.nz||site.n):site.n,{
+   permanent:true,direction:'bottom',offset:[0,6],className:'site-label',opacity:1
+  });
+ });
+ setTimeout(updateLabels,100);
+}
+window._refreshTooltips=refreshTooltips;
+
+// ── CONTROLS ──
+
+// Mode tabs — just switch which panel is visible
+document.getElementById('modeCity').addEventListener('click',function(){
+ S.mode='city';
+ this.classList.add('active');
+ document.getElementById('modeDay').classList.remove('active');
+ document.getElementById('panelCity').style.display='';
+ document.getElementById('panelDay').style.display='none';
+ // Show date slicer toggle area
+ document.getElementById('dateSlider').style.display=S.status?'flex':'none';
+ flyToAll();
+});
+document.getElementById('modeDay').addEventListener('click',function(){
+ S.mode='day';
+ this.classList.add('active');
+ document.getElementById('modeCity').classList.remove('active');
+ document.getElementById('panelDay').style.display='';
+ document.getElementById('panelCity').style.display='none';
+ // In day mode, hide date slicer (date is implied by day)
+ document.getElementById('dateSlider').classList.remove('show');
+ flyToAll();
+});
+
+// City buttons — just zoom shortcuts
+document.getElementById('cityRow').addEventListener('click',function(e){
+ var btn=e.target.closest('.mbtn');if(!btn)return;
+ this.querySelectorAll('.mbtn').forEach(function(b){b.classList.remove('active')});
+ btn.classList.add('active');
+ var city=btn.dataset.city;
+ if(map)map.closePopup();
+ if(city==='all'){flyToAll();}else{flyToCity(city);}
+});
+
+// Day buttons — just zoom shortcuts
+document.getElementById('dayRow').addEventListener('click',function(e){
+ var btn=e.target.closest('.mbtn');if(!btn)return;
+ this.querySelectorAll('.mbtn').forEach(function(b){b.classList.remove('active')});
+ btn.classList.add('active');
+ var dayNum=parseInt(btn.dataset.day);
+ // In day mode with status on, update the status date to match this day
+ if(S.status){S.date=DAY_DATES[dayNum-1]||23;applyColors();}
+ if(map)map.closePopup();
+ flyToDay(dayNum);
+});
+
+// Status toggle — only changes colors
+document.getElementById('statusWrap').addEventListener('click',function(){
+ S.status=!S.status;
+ document.getElementById('statusSw').classList.toggle('on',S.status);
+ document.getElementById('mapLegend').classList.toggle('show',S.status);
+ // Date slicer only relevant in city mode
+ if(S.mode==='city'){
+  document.getElementById('dateSlider').classList.toggle('show',S.status);
+ }
+ applyColors();
+});
+
+// Date slicer — only changes colors
+document.getElementById('dsScroll').addEventListener('click',function(e){
+ var btn=e.target.closest('.ds-d');if(!btn)return;
+ this.querySelectorAll('.ds-d').forEach(function(b){b.classList.remove('active')});
+ btn.classList.add('active');
+ S.date=parseInt(btn.dataset.d);
+ applyColors();
+});
+document.getElementById('dsPrev').addEventListener('click',function(){shiftD(-1);});
+document.getElementById('dsNext').addEventListener('click',function(){shiftD(1);});
+function shiftD(dir){
+ var d=S.date+dir;if(d<22)d=31;if(d>31)d=22;S.date=d;
+ document.querySelectorAll('.ds-d').forEach(function(b){b.classList.toggle('active',parseInt(b.dataset.d)===d);});
+ var ab=document.querySelector('.ds-d[data-d="'+d+'"]');
+ if(ab)ab.scrollIntoView({behavior:'smooth',inline:'center'});
+ applyColors();
+}
+
+// Sync itinerary toggle
+function syncItin(){var p=document.getElementById('btn-prg');S.itin=p&&p.classList.contains('active')?'prg':'waw';}
+var obs=new MutationObserver(function(){syncItin();buildDayRow();});
+var bp=document.getElementById('btn-prg');
+if(bp)obs.observe(bp,{attributes:true,attributeFilter:['class']});
+syncItin();
+
+// ZH
+Object.assign(zh,{map_label:'\u63a2\u7d22',map_title:'\u4e92\u52d5\u5730\u5716',map_desc:'\u9ede\u64ca\u57ce\u5e02\u6216\u884c\u7a0b\u65e5\u7e2e\u653e\u67e5\u770b\u3002\u958b\u555f\u72c0\u614b\u4e00\u89bd\u958b\u9589\u9928\u3002',all_cities:'\u5168\u90e8',show_status:'\u986f\u793a\u72c0\u614b',mode_city:'\u57ce\u5e02',mode_day:'\u884c\u7a0b'});
+
+buildDayRow();
+if(typeof L!=='undefined'){initLeaflet();}
+else{window.addEventListener('load',function(){if(typeof L!=='undefined')initLeaflet();});}
+
+})();
 </script>
 </body>
 </html>
